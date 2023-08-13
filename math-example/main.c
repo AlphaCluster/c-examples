@@ -7,6 +7,7 @@ const size_t BUFFER_SIZE = 512;
 
 enum OpCode {Add, Sub, Mult, Div, None};
 
+// Convert a char into a OpCode so we can have things cleaner.
 enum OpCode parse_operator(char operation)
 {
     enum OpCode result;
@@ -32,11 +33,14 @@ enum OpCode parse_operator(char operation)
     return result;
 }
 
+// Parse a string in teh buffer that contains the following pattern:
+// <first long><operation><second long>
 bool parse_line(long *first, long *second, char *operation, const char *buffer)
 {
     char localBuffer[BUFFER_SIZE];
     for (size_t index = 0; index < strlen(buffer) && index < BUFFER_SIZE; index++)
     {
+        // If we see one of the operations we want to parse out
         if ((buffer[index] == '+') ||
             (buffer[index] == '-') ||
             (buffer[index] == '*') ||
@@ -57,18 +61,22 @@ bool parse_line(long *first, long *second, char *operation, const char *buffer)
                 return false;
         }
 
+        // We are done parsing when we hit a newline
         if (buffer[index] == '\n')
         {
             *second = strtol(localBuffer, NULL, 10);
             return true;
         }
 
-        localBuffer[strlen(localBuffer)] = buffer[index];
+        // If not a space copy from the main buffer to the local one.
+        if (buffer[index] != ' ')
+            localBuffer[strlen(localBuffer)] = buffer[index];
     }
 
     return false;
 }
 
+// Do the actual calculation
 long calculate_result(long first, long second, enum OpCode operation)
 {
     long result = 0;
@@ -109,9 +117,14 @@ int main() {
     long second;
     char operand;
     bool status = parse_line(&first, &second, &operand, buffer);
+    if (status == false)
+    {
+        printf("Parsing failed!\n");
+        return 0;
+    }
 
     long result = calculate_result(first, second, parse_operator(operand));
 
-    printf("Read: %ld %c %ld = %ld", first, operand, second, result);
+    printf("Read: %ld %c %ld = %ld\n", first, operand, second, result);
     return 0;
 }
